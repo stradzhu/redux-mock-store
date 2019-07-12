@@ -95,6 +95,7 @@
   },
   "dependencies": {
     "@queso/kebab-case": "^1.0.1",
+    "lodash.isfunction": "^3.0.9",
     "lodash.isplainobject": "^4.0.6",
     "ts-helpers": "^1.1.2"
   },
@@ -126,7 +127,6 @@
     "husky": "^3.0.0",
     "jest": "^24.8.0",
     "lint-staged": "^9.2.0",
-    "lodash.isfunction": "^3.0.9",
     "prettier": "^1.18.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
