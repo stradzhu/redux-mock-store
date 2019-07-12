@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.2](https://github.com/jedmao/redux-mock-store/compare/v2.0.1...v2.0.2) (2019-07-12)
+
+
+### Bug Fixes
+
+* move lodash.isfunction to a dependency ([1de31ff](https://github.com/jedmao/redux-mock-store/commit/1de31ff))
+* use Redux.DeepPartial for state ([f4b8604](https://github.com/jedmao/redux-mock-store/commit/f4b8604))
+
 ## [2.0.1](https://github.com/jedmao/redux-mock-store/compare/v2.0.0...v2.0.1) (2019-07-12)
 
 
