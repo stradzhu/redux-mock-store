@@ -2,7 +2,7 @@
 
 [![Travis Build Status](https://img.shields.io/travis/com/jedmao/redux-mock-store.svg?style=popout-square&logo=travis)](https://travis-ci.com/jedmao/redux-mock-store)
 [![codecov](https://img.shields.io/codecov/c/gh/jedmao/redux-mock-store.svg?style=popout-square&logo=codecov&token=4f79d0b1189f41e5a5ed32e87ca0a204)](https://codecov.io/gh/jedmao/redux-mock-store)
-[![npm version](https://img.shields.io/npm/v/jedmao/redux-mock-store/latest.svg?style=popout-square&logo=npm)](https://www.npmjs.com/package/@jedmao/redux-mock-store)
+[![npm version](https://img.shields.io/npm/v/@jedmao/redux-mock-store/latest.svg?style=popout-square&logo=npm)](https://www.npmjs.com/package/@jedmao/redux-mock-store)
 
 A mock store for testing Redux async action creators and middleware. The mock
 store will create an array of dispatched actions which serve as an action log
