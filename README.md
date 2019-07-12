@@ -34,6 +34,43 @@ yarn add @jedmao/redux-mock-store --dev
 
 ## Usage
 
+You will benefit from configuring a single `mockStore` for all of your tests. A
+common example would be to configure your store with a
+[`redux-thunk`](https://www.npmjs.com/package/redux-thunk) middleware.
+
+### mockStore.js
+
+```js
+import configureMockStore from '@jedmao/redux-mock-store'
+import thunk from 'redux-thunk'
+
+const middlewares = [thunk]
+
+export default configureMockStore(middlewares)
+```
+
+Let's do the same thing in TypeScript and add an extra thunk argument.
+
+### mockStore.ts
+
+```ts
+import configureMockStore from '@jedmao/redux-mock-store'
+import thunk, { ThunkDispatch } from 'redux-thunk'
+
+// internal dependencies
+import RootState from 'store/RootState'
+import RootActions from 'actions'
+
+const extraThunkArgument = { foo: 'bar' }
+const middlewares = [thunk.withExtraArgument(extraThunkArgument)]
+
+export default configureMockStore<
+  RootState,
+  RootActions,
+  ThunkDispatch<RootState, typeof extraThunkArgument, RootActions>
+>(middlewares)
+```
+
 ### Synchronous actions
 
 The simplest usecase is for synchronous actions. In this example, we will test
@@ -44,83 +81,31 @@ actions by calling [`store.getActions()`](#getactions). Finally, you can use any
 assertion library to test the payload.
 
 ```ts
-import configureMockStore from '@jedmao/redux-mock-store'
+import { mockStore } from 'utils/test'
 
-const middlewares = []
-const mockStore = configureMockStore(middlewares)
-
-// You would import the action from your codebase in a real scenario.
-const addTodo = () => ({ type: 'ADD_TODO' })
-
-it('dispatches an action', () => {
+it('dispatches ADD_TODO', () => {
   const store = mockStore(/* initial state */)
+  const action = { type: 'ADD_TODO' }
 
-  store.dispatch(addTodo())
+  store.dispatch(action)
 
-  expect(store.getActions()).toEqual([{ type: 'ADD_TODO' }])
+  expect(store.getActions()[0]).toBe(action)
 })
 ```
 
 ### Asynchronous actions
 
-A common usecase for an asynchronous action is an HTTP request to a server. In
-order to test these types of actions, you need to call
-[`store.getActions()`](#getactions) at the end of the request.
-
 ```ts
-import configureMockStore from '@jedmao/redux-mock-store'
-import thunk from 'redux-thunk'
-
-const middlewares = [thunk]
-const mockStore = configureMockStore(middlewares)
-
-// You would import the action from your codebase in a real scenario.
-function success() {
-  return {
-    type: 'FETCH_DATA_SUCCESS',
+it('asynchronously dispatches SUCCESS', async () => {
+  const store = mockStore(/* initial state */)
+  const success = { type: 'SUCCESS' }
+  const foo = () => async dispatch => {
+    dispatch(success)
   }
-}
 
-function fetchData() {
-  return async dispatch => {
-    await fetch('/users.json')
-    dispatch(success())
-  }
-}
+  await store.dispatch(foo())
 
-it('fetches data successfully', async () => {
-  const store = mockStore()
-
-  await store.dispatch(fetchData())
-
-  const actions = store.getActions()
-  expect(actions[0]).toEqual(success())
-})
-```
-
-### TypeScript Usage
-
-When using TypeScript, you'll benefit from specifying the state object `S`, the
-action type `A` and any `DispatchExts` (e.g., for async actions).
-
-```ts
-import RootActions from 'actions'
-import ExtraThunkArgument from 'store/configureStore'
-import RootState from 'store/RootState'
-
-const mockStore = configureMockStore<
-  RootState,
-  RootActions,
-  ThunkDispatch<RootState, ExtraThunkArgument, RootActions>
->([thunk])
-
-it('fetches data successfully', async () => {
-  const store = mockStore()
-
-  await store.dispatch<Promise<void>>(fetchData())
-
-  const actions = store.getActions()
-  expect(actions[0]).toEqual(success())
+  expect(store.getActions()[0]).toBe(success)
 })
 ```
 
@@ -244,7 +229,7 @@ type MockStoreCreator<
   A extends Action = AnyAction,
   DispatchExts extends {} | void = void
 > = (
-  state?: S | MockGetState<S>,
+  state?: S | MockGetState<Redux.DeepPartial<S>>,
 ) => DispatchExts extends void
   ? MockStore<S, A>
   : MockStoreEnhanced<S, A, DispatchExts>
@@ -270,7 +255,7 @@ type MockStoreEnhanced<
   S,
   A extends Action = AnyAction,
   DispatchExts = {}
-> = MockStore<S, A> & {
+> = MockStore<Redux.DeepPartial<S>, A> & {
   dispatch: DispatchExts
 }
 ```
@@ -279,7 +264,7 @@ type MockStoreEnhanced<
 
 ```ts
 interface MockStore<S = any, A extends Redux.Action = Redux.AnyAction>
-  extends Redux.Store<S, A> {
+  extends Redux.Store<Redux.DeepPartial<S>, A> {
   clearActions(): void
   getActions(): A[]
   subscribe(listener: (action: A) => void): Redux.Unsubscribe

@@ -2,6 +2,7 @@ import {
 	Action,
 	AnyAction,
 	applyMiddleware,
+	DeepPartial,
 	Middleware,
 	Observable,
 	Reducer,
@@ -118,7 +119,7 @@ export type MockStoreCreator<
 	A extends Action = AnyAction,
 	DispatchExts extends {} | void = void
 > = (
-	state?: S | MockGetState<S>,
+	state?: DeepPartial<S> | MockGetState<DeepPartial<S>>,
 ) => DispatchExts extends void
 	? MockStore<S, A>
 	: MockStoreEnhanced<S, A, DispatchExts>
@@ -129,12 +130,12 @@ export type MockStoreEnhanced<
 	S,
 	A extends Action = AnyAction,
 	DispatchExts = {}
-> = MockStore<S, A> & {
+> = MockStore<DeepPartial<S>, A> & {
 	dispatch: DispatchExts
 }
 
 export interface MockStore<S = any, A extends Action = AnyAction>
-	extends Store<S, A> {
+	extends Store<DeepPartial<S>, A> {
 	clearActions(): void
 	getActions(): A[]
 	subscribe(listener: (action: A) => void): Unsubscribe
