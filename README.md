@@ -88,10 +88,36 @@ function fetchData() {
   }
 }
 
-it('executes fetch data', async () => {
+it('fetches data successfully', async () => {
   const store = mockStore()
 
   await store.dispatch(fetchData())
+
+  const actions = store.getActions()
+  expect(actions[0]).toEqual(success())
+})
+```
+
+### TypeScript Usage
+
+When using TypeScript, you'll benefit from specifying the state object `S`, the
+action type `A` and any `DispatchExts` (e.g., for async actions).
+
+```ts
+import RootActions from 'actions'
+import ExtraThunkArgument from 'store/configureStore'
+import RootState from 'store/RootState'
+
+const mockStore = configureMockStore<
+  RootState,
+  RootActions,
+  ThunkDispatch<RootState, ExtraThunkArgument, RootActions>
+>([thunk])
+
+it('fetches data successfully', async () => {
+  const store = mockStore()
+
+  await store.dispatch<Promise<void>>(fetchData())
 
   const actions = store.getActions()
   expect(actions[0]).toEqual(success())
