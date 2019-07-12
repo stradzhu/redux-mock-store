@@ -1,12 +1,39 @@
 /* eslint max-nested-callbacks: "off" */
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-unused-vars: "off" */
-import { Store, Action } from 'redux'
+import { Action, Store } from 'redux'
 import thunk, { ThunkAction, ThunkDispatch } from 'redux-thunk'
 
 import configureMockStore from '.'
 
-const mockStore = configureMockStore()
+const FOO_REQUEST = 'FOO_REQUEST'
+type FooRequest = Action<typeof FOO_REQUEST>
+function fooRequest(): FooRequest {
+	return { type: FOO_REQUEST }
+}
+
+const FOO_SUCCESS = 'FOO_SUCCESS'
+interface FooSuccess extends Action<typeof FOO_SUCCESS> {
+	bar: number
+}
+function fooSuccess(bar: number): FooSuccess {
+	return { type: FOO_SUCCESS, bar }
+}
+
+const FOO_FAILURE = 'FOO_FAILURE'
+interface FooFailure extends Action<typeof FOO_FAILURE> {
+	error: Error
+}
+function fooFailure(error: Error): FooFailure {
+	return { type: FOO_FAILURE, error }
+}
+
+interface RootState {
+	value: number
+	unused: string
+}
+type RootActions = FooRequest | FooSuccess | FooFailure
+const mockStore = configureMockStore<RootState, RootActions>()
 
 describe('@jedmao/redux-mock-store', () => {
 	it('exports a default function named "configureMockStore"', () => {
@@ -24,13 +51,16 @@ describe('@jedmao/redux-mock-store', () => {
 	describe('getState', () => {
 		describe('function scenario', () => {
 			it('returns the result of getState()', () => {
-				const store = mockStore(() => 42)
+				const state = { value: 42 }
+				const mockGetState = () => state
 
-				expect(store.getState()).toBe(42)
+				const store = mockStore(mockGetState)
+
+				expect(store.getState()).toBe(state)
 			})
 
 			it('is called with actions', () => {
-				const action = { type: 'ADD_ITEM' }
+				const action = fooRequest()
 				const getState = jest.fn()
 				const store = mockStore(getState)
 
@@ -54,8 +84,10 @@ describe('@jedmao/redux-mock-store', () => {
 	})
 
 	describe('dispatch', () => {
+		const _mockStore = configureMockStore()
+
 		it('throws when action is undefined', () => {
-			const store = mockStore()
+			const store = _mockStore()
 
 			expect(() => {
 				store.dispatch(undefined)
@@ -66,7 +98,7 @@ describe('@jedmao/redux-mock-store', () => {
 		})
 
 		it('throws when action is a function', () => {
-			const store = mockStore()
+			const store = _mockStore()
 
 			expect(() => {
 				store.dispatch((() => {}) as any)
@@ -77,8 +109,8 @@ describe('@jedmao/redux-mock-store', () => {
 		})
 
 		it('throws when action.type is undefined', () => {
-			const action = { types: 'ADD_ITEM' }
-			const store = mockStore()
+			const action = { types: 'UNSUPPORTED' }
+			const store = _mockStore()
 
 			expect(() => {
 				store.dispatch(action as any)
@@ -86,23 +118,22 @@ describe('@jedmao/redux-mock-store', () => {
 				'Actions may not have an undefined "type" property. ' +
 					'Have you misspelled a constant? ' +
 					'Action: ' +
-					'{"types":"ADD_ITEM"}',
+					'{"types":"UNSUPPORTED"}',
 			)
 		})
 
 		it('returns dispatched action if no errors thrown', () => {
-			const action = { type: 'ADD_ITEM' }
-			const store = mockStore()
+			const store = _mockStore()
+			const action = fooRequest()
 
 			store.dispatch(action)
 
-			const [first] = store.getActions()
-			expect(first).toBe(action)
+			expect(store.getActions()[0]).toBe(action)
 		})
 
 		it('stores 2 dispatched actions', () => {
-			const store = mockStore()
-			const actions = [{ type: 'ADD_ITEM' }, { type: 'REMOVE_ITEM' }]
+			const store = _mockStore()
+			const actions = [fooRequest(), fooSuccess(42)]
 
 			store.dispatch(actions[0])
 			store.dispatch(actions[1])
@@ -113,7 +144,7 @@ describe('@jedmao/redux-mock-store', () => {
 
 	describe('clearActions', () => {
 		it('clears actions', () => {
-			const action = { type: 'ADD_ITEM' }
+			const action = fooRequest()
 			const store = mockStore()
 
 			store.dispatch(action)
@@ -127,7 +158,7 @@ describe('@jedmao/redux-mock-store', () => {
 	describe('subscribe', () => {
 		it('subscribes to dispatched actions', done => {
 			const store = mockStore()
-			const action = { type: 'ADD_ITEM' }
+			const action = fooRequest()
 
 			store.subscribe(a => {
 				expect(store.getActions()[0]).toEqual(action)
@@ -139,7 +170,7 @@ describe('@jedmao/redux-mock-store', () => {
 
 		it('returns an unsubscribe function that unsubscribes all subscribers', done => {
 			const store = mockStore()
-			const action = { type: 'ADD_ITEM' }
+			const action = fooRequest()
 			const timeoutId = setTimeout(done, 10000)
 			const unsubscribe = store.subscribe(() => {
 				throw new Error('should never be called')
@@ -185,61 +216,24 @@ describe('@jedmao/redux-mock-store', () => {
 		})
 	})
 
-	describe('a store with a redux-thunk middleware', () => {
-		const mockStoreWithMiddleware = configureMockStore<
-			any,
-			any,
-			ThunkDispatch<any, any, any>
-		>([thunk])
-		it('handles an async action', async () => {
-			const store = mockStoreWithMiddleware()
-			const increment = { type: 'INCREMENT_COUNTER' }
+	it('calls a provided middleware', () => {
+		const mockMiddleware = (spy: jest.Mock) => (_store: Store) => (
+			next: (action: Action) => void,
+		) => (action: Action) => {
+			spy()
+			return next(action)
+		}
 
-			await store.dispatch<Promise<void>>(incrementAsync())
+		const spy = jest.fn()
+		const store = configureMockStore([mockMiddleware(spy)])()
 
-			expect(store.getActions()[0]).toEqual(increment)
+		store.dispatch(fooRequest())
 
-			function incrementAsync(): ThunkAction<Promise<void>, any, any, any> {
-				return async dispatch => {
-					dispatch(increment)
-				}
-			}
-		})
-
-		it('handles errors thrown in test function', async () => {
-			const store = mockStoreWithMiddleware()
-			const error = { error: 'Something went wrong' }
-
-			expect.assertions(1)
-
-			return expect(
-				store.dispatch<Promise<void>>(() => Promise.reject(error)),
-			).rejects.toBe(error)
-		})
-
-		it('calls the middleware', () => {
-			const mockMiddleware = (spy: jest.Mock) => (_store: Store) => (
-				next: (action: Action) => void,
-			) => (action: Action) => {
-				spy()
-				return next(action)
-			}
-
-			const spy = jest.fn()
-			const mockStoreWithCustomMiddleware = configureMockStore([
-				mockMiddleware(spy),
-			])
-			const action = { type: 'ADD_ITEM' }
-			const store = mockStoreWithCustomMiddleware()
-
-			store.dispatch(action)
-
-			expect(spy).toHaveBeenCalled()
-		})
+		expect(spy).toHaveBeenCalled()
 	})
 
-	describe('TypeScript generics', () => {
-		it('allows configuration w/o any types defined', () => {
+	describe('TypeScript', () => {
+		it('supports no defined generic types', () => {
 			const state = { foo: 'bar' }
 			const mockStore = configureMockStore()
 
@@ -248,7 +242,7 @@ describe('@jedmao/redux-mock-store', () => {
 			expect(store.getState()).toBe(state)
 		})
 
-		it('allows providing state type alone', () => {
+		it('supports state type <S>', () => {
 			const state = { foo: 'bar' }
 			const mockStore = configureMockStore<typeof state>()
 
@@ -257,14 +251,68 @@ describe('@jedmao/redux-mock-store', () => {
 			expect(store.getState()).toBe(state)
 		})
 
-		it('allows providing action type', () => {
-			const action: Action<'FOO'> = { type: 'FOO' }
+		it('supports an action type via <any, A>', () => {
+			const action: Action<'TEST'> = { type: 'TEST' }
 			const mockStore = configureMockStore<any, typeof action>()
 			const store = mockStore()
 
 			store.dispatch(action)
 
 			expect(store.getActions()[0]).toBe(action)
+		})
+
+		describe('using a redux-thunk middleware with <S, A, D> generics', () => {
+			const extraThunkArgument = { app: jest.fn() }
+			type MyThunkAction<R = void> = ThunkAction<
+				R,
+				RootState,
+				typeof extraThunkArgument,
+				RootActions
+			>
+			const middlewares = [thunk.withExtraArgument(extraThunkArgument)]
+			const mockStore = configureMockStore<
+				RootState,
+				RootActions,
+				ThunkDispatch<RootState, typeof extraThunkArgument, RootActions>
+			>(middlewares)
+
+			it('handles a successful async action', async () => {
+				const store = mockStore()
+				const successValue = 42
+
+				await store.dispatch(simulatePass(successValue))
+
+				expect(store.getActions()).toEqual([
+					fooRequest(),
+					fooSuccess(successValue),
+				])
+
+				function simulatePass(resolveValue: any): MyThunkAction {
+					return async dispatch => {
+						dispatch(fooRequest())
+						dispatch(fooSuccess(resolveValue))
+					}
+				}
+			})
+
+			it('handles a failed async action', async () => {
+				const store = mockStore()
+				const error = new Error()
+
+				await store.dispatch(simulateFail(error))
+
+				expect(store.getActions()).toEqual([
+					fooRequest(),
+					fooFailure(error),
+				])
+
+				function simulateFail(error: Error): MyThunkAction {
+					return async dispatch => {
+						dispatch(fooRequest())
+						dispatch(fooFailure(error))
+					}
+				}
+			})
 		})
 	})
 })

@@ -73,12 +73,8 @@ export default configureMockStore<
 
 ### Synchronous actions
 
-The simplest usecase is for synchronous actions. In this example, we will test
-if the `addTodo` action returns the right payload.
-[`@jedmao/redux-mock-store`](https://www.npmjs.com/package/@jedmao/redux-mock-store)
-saves all the dispatched actions inside the store instance. You can get all the
-actions by calling [`store.getActions()`](#getactions). Finally, you can use any
-assertion library to test the payload.
+The mock store saves all the dispatched actions inside the store instance. You
+can get all the actions by calling [`store.getActions()`](#getactions).
 
 ```ts
 import { mockStore } from 'utils/test'
@@ -114,6 +110,10 @@ it('asynchronously dispatches SUCCESS', async () => {
   expect(store.getActions()[0]).toBe(success)
 })
 ```
+
+See
+[the tests](https://github.com/jedmao/redux-mock-store/blob/master/src/index.test.ts)
+for more thorough examples.
 
 ## API
 
