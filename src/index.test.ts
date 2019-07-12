@@ -191,14 +191,13 @@ describe('@jedmao/redux-mock-store', () => {
 			any,
 			ThunkDispatch<any, any, any>
 		>([thunk])
-		it('handles async actions', done => {
+		it('handles an async action', async () => {
 			const store = mockStoreWithMiddleware()
 			const increment = { type: 'INCREMENT_COUNTER' }
 
-			store.dispatch<Promise<void>>(incrementAsync()).then(() => {
-				expect(store.getActions()[0]).toEqual(increment)
-				done()
-			})
+			await store.dispatch<Promise<void>>(incrementAsync())
+
+			expect(store.getActions()[0]).toEqual(increment)
 
 			function incrementAsync(): ThunkAction<Promise<void>, any, any, any> {
 				return async dispatch => {
