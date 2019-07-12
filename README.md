@@ -1,146 +1,264 @@
-# redux-mock-store [![Circle CI](https://circleci.com/gh/arnaudbenard/redux-mock-store/tree/master.svg?style=svg)](https://circleci.com/gh/arnaudbenard/redux-mock-store/tree/master)
+# @jedmao/redux-mock-store
 
+[![Travis Build Status](https://img.shields.io/travis/com/jedmao/redux-mock-store.svg?style=popout-square&logo=travis)](https://travis-ci.com/jedmao/redux-mock-store)
+[![codecov](https://img.shields.io/codecov/c/gh/jedmao/redux-mock-store.svg?style=popout-square&logo=codecov&token=4f79d0b1189f41e5a5ed32e87ca0a204)](https://codecov.io/gh/jedmao/redux-mock-store)
+[![npm version](https://img.shields.io/npm/v/jedmao/redux-mock-store/latest.svg?style=popout-square&logo=npm)](https://www.npmjs.com/package/@jedmao/redux-mock-store)
 
-![npm](https://nodei.co/npm/redux-mock-store.png?downloads=true&downloadRank=true&stars=true)
+A mock store for testing Redux async action creators and middleware. The mock
+store will create an array of dispatched actions which serve as an action log
+for tests.
 
-A mock store for testing Redux async action creators and middleware. The mock store will create an array of dispatched actions which serve as an action log for tests.
+_This is a TypeScript fork of
+[redux-mock-store](https://github.com/dmitry-zaets/redux-mock-store)._
 
-Please note that this library is designed to test the action-related logic, not the reducer-related one. In other words, it does not update the Redux store. If you want a complex test combining actions and reducers together, take a look at other libraries (e.g., [redux-actions-assertions](https://github.com/redux-things/redux-actions-assertions)). Refer to issue [#71](https://github.com/arnaudbenard/redux-mock-store/issues/71) for more details.
+Please note that this library is designed to test the action-related, not
+reducer-related logic (i.e., it does not update the Redux store). If you want a
+complex test combining actions and reducers together, take a look at other
+libraries (e.g.,
+[redux-actions-assertions](https://github.com/redux-things/redux-actions-assertions)).
+Refer to issue
+[redux-mock-store#71](https://github.com/arnaudbenard/redux-mock-store/issues/71)
+for more details.
 
-## Install
+## Installation
 
 ```bash
-npm install redux-mock-store --save-dev
+npm install @jedmao/redux-mock-store --save-dev
 ```
 
 Or
 
 ```bash
-yarn add redux-mock-store --dev
+yarn add @jedmao/redux-mock-store --dev
 ```
 
 ## Usage
 
 ### Synchronous actions
 
-The simplest usecase is for synchronous actions. In this example, we will test if the `addTodo` action returns the right payload. `redux-mock-store` saves all the dispatched actions inside the store instance. You can get all the actions by calling `store.getActions()`. Finally, you can use any assertion library to test the payload.
+The simplest usecase is for synchronous actions. In this example, we will test
+if the `addTodo` action returns the right payload.
+[`@jedmao/redux-mock-store`](https://www.npmjs.com/package/@jedmao/redux-mock-store)
+saves all the dispatched actions inside the store instance. You can get all the
+actions by calling [`store.getActions()`](#getactions). Finally, you can use any
+assertion library to test the payload.
 
-```js
-import configureStore from 'redux-mock-store' //ES6 modules
-const { configureStore } = require('redux-mock-store') //CommonJS
+```ts
+import configureMockStore from '@jedmao/redux-mock-store'
 
 const middlewares = []
-const mockStore = configureStore(middlewares)
+const mockStore = configureMockStore(middlewares)
 
-// You would import the action from your codebase in a real scenario
+// You would import the action from your codebase in a real scenario.
 const addTodo = () => ({ type: 'ADD_TODO' })
 
-it('should dispatch action', () => {
+it('dispatches an action', () => {
+  const store = mockStore(/* initial state */)
 
-  // Initialize mockstore with empty state
-  const initialState = {}
-  const store = mockStore(initialState)
-
-  // Dispatch the action
   store.dispatch(addTodo())
 
-  // Test if your store dispatched the expected actions
-  const actions = store.getActions()
-  const expectedPayload = { type: 'ADD_TODO' }
-  expect(actions).toEqual([expectedPayload])
+  expect(store.getActions()).toEqual([{ type: 'ADD_TODO' }])
 })
 ```
 
 ### Asynchronous actions
 
-A common usecase for an asynchronous action is a HTTP request to a server. In order to test those types of actions, you will need to call `store.getActions()` at the end of the request.
+A common usecase for an asynchronous action is an HTTP request to a server. In
+order to test these types of actions, you need to call
+[`store.getActions()`](#getactions) at the end of the request.
 
-```js
-import configureStore from 'redux-mock-store'
+```ts
+import configureMockStore from '@jedmao/redux-mock-store'
 import thunk from 'redux-thunk'
 
-const middlewares = [thunk] // add your middlewares like `redux-thunk`
-const mockStore = configureStore(middlewares)
+const middlewares = [thunk]
+const mockStore = configureMockStore(middlewares)
 
-// You would import the action from your codebase in a real scenario
+// You would import the action from your codebase in a real scenario.
 function success() {
   return {
-    type: 'FETCH_DATA_SUCCESS'
+    type: 'FETCH_DATA_SUCCESS',
   }
 }
 
-function fetchData () {
-  return dispatch => {
-    return fetch('/users.json') // Some async action with promise
-      .then(() => dispatch(success()))
-  };
+function fetchData() {
+  return async dispatch => {
+    await fetch('/users.json')
+    dispatch(success())
+  }
 }
 
-it('should execute fetch data', () => {
-  const store = mockStore({})
+it('executes fetch data', async () => {
+  const store = mockStore()
 
-  // Return the promise
-  return store.dispatch(fetchData())
-    .then(() => {
-      const actions = store.getActions()
-      expect(actions[0]).toEqual(success())
-    })
+  await store.dispatch(fetchData())
+
+  const actions = store.getActions()
+  expect(actions[0]).toEqual(success())
 })
 ```
 
-### API
+## API
 
-```js
-configureStore(middlewares?: Array) => mockStore: Function
-```
-Configure mock store by applying the middlewares.
+### configureMockStore
 
-```js
-mockStore(getState?: Object,Function) => store: Function
-```
-Returns an instance of the configured mock store. If you want to reset your store after every test, you should call this function.
+Configure the mock store by applying middlewares.
 
-```js
-store.dispatch(action) => action
+```ts
+configureMockStore<
+  S = any,
+  A extends Redux.Action = Redux.AnyAction,
+  DispatchExts extends {} | void = void
+>(
+  middlewares: Redux.Middleware[] = [],
+): MockStoreCreator<S, A, DispatchExts>
 ```
-Dispatches an action through the mock store. The action will be stored in an array inside the instance and executed.
 
-```js
-store.getState() => state: Object
-```
-Returns the state of the mock store.
+Calling [`configureMockStore`](#configuremockstore) will return a
+[`MockStoreCreator`](#mockstorecreator), which returns an instance of the
+configured mock store. This [`MockStoreCreator`](#mockstorecreator) is a
+function named [`mockStore`](#mockstore).
 
-```js
-store.getActions() => actions: Array
-```
-Returns the actions of the mock store.
+#### mockStore
 
-```js
-store.clearActions()
+Call this function to reset your store after every test.
+
+```ts
+function mockStore(
+  getState: S | MockGetState<S> = {} as S,
+): DispatchExts extends void
+  ? MockStore<S, A>
+  : MockStoreEnhanced<S, A, DispatchExts>
 ```
+
+## Mock Store API
+
+### dispatch
+
+Dispatches an action `T` through the mock store. The action will be stored in an
+array inside the instance and executed.
+
+```ts
+dispatch<T extends A>(action: T): T
+```
+
+If `DispatchExts` are provided, [`dispatch`](#dispatch) will support an
+additional signature.
+
+```ts
+dispatch<R>(
+  asyncAction: ThunkAction<R, S, E, A>,
+): R
+```
+
+### getState
+
+Returns the state `S` of the mock store.
+
+```ts
+getState(): S
+```
+
+### getActions
+
+Returns the actions `A[]` of the mock store.
+
+```ts
+getActions(): A[]
+```
+
+### clearActions
+
 Clears the stored actions.
 
-```js
-store.subscribe(callback: Function) => unsubscribe: Function
+```ts
+clearActions(): void
 ```
-Subscribe to the store.
 
-```js
-store.replaceReducer(nextReducer: Function)
+### subscribe
+
+Subscribe a `listener` to the store.
+
+```ts
+subscribe(
+  listener: (action: A) => void,
+): Redux.Unsubscribe
 ```
-Follows the Redux API.
 
-### Old version (`< 1.x.x`)
+### replaceReducer
 
-https://github.com/arnaudbenard/redux-mock-store/blob/v0.0.6/README.md
+Because a mock store does not have or support reducers, this function will
+always throw an error.
 
-### Versions
+```ts
+replaceReducer(nextReducer: Reducer<S, A>): never
+```
 
-The following versions are exposed by redux-mock-store from the `package.json`:
+> Mock stores do not support reducers. Try supplying a function to `getStore`
+> instead.
 
-* `main`: commonJS Version
-* `module`/`js:next`: ES Module Version
-* `browser` : UMD version
+## TypeScript
+
+The [`@jedmao`](https://www.npmjs.com/package/@jedmao/redux-mock-store) scoped
+version of this library is written in TypeScript and published with generated
+type information. No need to `npm install` additional
+[`@types`](https://www.npmjs.com/org/types). Additionally, a number of types and
+interfaces (below) have been exported for your convenience.
+
+### MockStoreCreator
+
+If you provide `DistpatchExts` then this type will return a
+[`MockStoreEnhanced`](#mockstoreenhanced), which supports async actions (e.g.,
+thunks). Otherwise, it will just return a plain ol' [`MockStore`](#mockstore)
+for sync actions.
+
+```ts
+type MockStoreCreator<
+  S = {},
+  A extends Action = AnyAction,
+  DispatchExts extends {} | void = void
+> = (
+  state?: S | MockGetState<S>,
+) => DispatchExts extends void
+  ? MockStore<S, A>
+  : MockStoreEnhanced<S, A, DispatchExts>
+```
+
+### MockGetState
+
+This type is used in the [`MockStoreCreator`](#mockstorecreator) via
+`state?: S | MockGetState<S>`, which allows you to either supply a single state
+object `S` or a function that would return `S`. Why a function? See
+[redux-mock-store#102](https://github.com/dmitry-zaets/redux-mock-store/issues/102).
+
+```ts
+type MockGetState<S = {}> = (actions: AnyAction[]) => S
+```
+
+### MockStoreEnhanced
+
+Enables async actions (e.g., thunks).
+
+```ts
+type MockStoreEnhanced<
+  S,
+  A extends Action = AnyAction,
+  DispatchExts = {}
+> = MockStore<S, A> & {
+  dispatch: DispatchExts
+}
+```
+
+### MockStore
+
+```ts
+interface MockStore<S = any, A extends Redux.Action = Redux.AnyAction>
+  extends Redux.Store<S, A> {
+  clearActions(): void
+  getActions(): A[]
+  subscribe(listener: (action: A) => void): Redux.Unsubscribe
+}
+```
 
 ## License
 
