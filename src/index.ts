@@ -97,7 +97,7 @@ export default function configureMockStore<
 					}
 				},
 
-				/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				replaceReducer(_nextReducer: Reducer<S, A>): never {
 					throw new Error(
 						'Mock stores do not support reducers. ' +

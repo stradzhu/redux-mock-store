@@ -10,7 +10,7 @@
       "impliedStrict": true
     },
     "ecmaVersion": 6,
-    "project": "./tsconfig.json",
+    "project": "./tsconfig.lint.json",
     "sourceType": "module",
     "tsconfigRootDir": "."
   },
@@ -34,6 +34,7 @@
     "@typescript-eslint/member-delimiter-style": "off",
 
     // TypeScript-ESLint
+    "@typescript-eslint/ban-ts-ignore": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/indent": "off",
     "@typescript-eslint/no-explicit-any": "off",
