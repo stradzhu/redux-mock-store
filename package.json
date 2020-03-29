@@ -104,7 +104,6 @@
     "branch": "master",
     "extends": "@jedmao/semantic-release-npm-github-config"
   },
-  "dependencies": {},
   "peerDependencies": {
     "redux": "^4"
   },
