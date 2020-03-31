@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.3](https://github.com/jedmao/redux-mock-store/compare/v3.0.2...v3.0.3) (2020-03-31)
+
+
+### Bug Fixes
+
+* build fixes ([#52](https://github.com/jedmao/redux-mock-store/issues/52)) ([1226c0c](https://github.com/jedmao/redux-mock-store/commit/1226c0ca2fb49d306115300455d0cea7f0938c26))
+
 ## [3.0.2](https://github.com/jedmao/redux-mock-store/compare/v3.0.1...v3.0.2) (2020-03-29)
 
 
