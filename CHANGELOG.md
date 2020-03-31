@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.4](https://github.com/jedmao/redux-mock-store/compare/v3.0.3...v3.0.4) (2020-03-31)
+
+
+### Bug Fixes
+
+* **tsconfig:** typo in tsconfig ([#53](https://github.com/jedmao/redux-mock-store/issues/53)) ([1162883](https://github.com/jedmao/redux-mock-store/commit/11628834e6389b7772c4e961bd40ce06f3302b80))
+
 ## [3.0.3](https://github.com/jedmao/redux-mock-store/compare/v3.0.2...v3.0.3) (2020-03-31)
 
 
