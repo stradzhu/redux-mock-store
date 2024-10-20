@@ -139,6 +139,7 @@
     "rimraf": "^3",
     "semantic-release": "^17",
     "ts-jest": "^25",
-    "typescript": "^3.8"
+    "typescript": "^3.8",
+    "utility-types": "^3.11.0"
   }
 }

@@ -2,7 +2,6 @@ import {
 	Action,
 	AnyAction,
 	applyMiddleware,
-	DeepPartial,
 	Middleware,
 	Observable,
 	Reducer,
@@ -10,6 +9,8 @@ import {
 	StoreEnhancerStoreCreator,
 	Unsubscribe,
 } from 'redux'
+
+import { DeepPartial } from 'utility-types';
 
 import { isFunction, isPlainObject } from './utils'
 
