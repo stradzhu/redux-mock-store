@@ -32,7 +32,8 @@
     "cover": "jest --coverage",
     "pretest": "npm run lint",
     "test": "jest --watch",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
