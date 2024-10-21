@@ -1,6 +1,6 @@
 {
-  "name": "@jedmao/redux-mock-store",
-  "version": "3.0.5",
+  "name": "@stradzhu/jedmao-redux-mock-store",
+  "version": "3.0.6",
   "description": "A mock store for testing your redux async action creators and middleware",
   "keywords": [
     "react",
@@ -37,14 +37,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jedmao/redux-mock-store.git"
+    "url": "git+https://github.com/stradzhu/redux-mock-store.git"
   },
-  "author": "Jed Mao <jedmao@outlook.com>",
+  "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jedmao/redux-mock-store/issues"
+    "url": "https://github.com/stradzhu/redux-mock-store/issues"
   },
-  "homepage": "https://github.com/jedmao/redux-mock-store#readme",
+  "homepage": "https://github.com/stradzhu/redux-mock-store#readme",
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
